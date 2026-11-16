@@ -1,0 +1,22 @@
+Small diameter, fixed labels in both parts
+A B  graphs  equality
+1 1  1  0
+1 2  1  1
+1 3  1  1
+1 4  1  1
+1 5  1  1
+2 2  5  1
+2 3  13  7
+2 4  29  21
+2 5  61  51
+3 3  97  0
+3 4  541  0
+3 5  2641  0
+3 6  12013  90
+4 4  8045  0
+4 5  98821  0
+Total: 122271 graphs, 174 equalities.
+Cases with a = 4: 106866.
+Small-part algorithm vs exhaustive minimum: 4680 labeled graphs, including disconnected inputs.
+Exact reduction: 33 base graphs, 184 target instances, largest output order 159.
+One-edge example: 13 vertices, optimum 6, 2 minimum sets.
