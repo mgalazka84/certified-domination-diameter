@@ -20,3 +20,4 @@ Cases with a = 4: 106866.
 Small-part algorithm vs exhaustive minimum: 4680 labeled graphs, including disconnected inputs.
 Exact reduction: 33 base graphs, 184 target instances, largest output order 159.
 One-edge example: 13 vertices, optimum 6, 2 minimum sets.
+Fixed diameters 5 through 10: 1104 instances; all diameters, part sizes and optimum gaps agree.

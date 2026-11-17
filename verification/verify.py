@@ -1,6 +1,6 @@
 """Finite checks for certified domination and the smaller part.
 
-Run without arguments to reproduce all results. Only the reduction check
+Run without arguments to reproduce all results. Only the reduction checks
 requires NumPy and SciPy. Vertices are zero-based. A graph is a sequence
 of integers in which bit j of graph[i] records adjacency to j.
 """
@@ -258,9 +258,55 @@ def check_reduction():
     print(f"One-edge example: {len(graph)} vertices, optimum 6, {len(minima)} minimum sets.")
 
 
+def fixed_diameter_reduction(n, edges, k, diameter):
+    """Reattach existing leaf pairs along a path to obtain a prescribed diameter."""
+    if diameter < 4:
+        raise ValueError("The construction requires diameter at least four.")
+    length = diameter - 3
+    edges = list(edges)
+    while 4 * len(edges) - 1 - k < length:
+        edges.append((n, n + 1))
+        n += 2
+        k += 1
+
+    hub, graph = reduction(n, edges, k)
+    arm_count = 4 * len(edges) - 1 - k
+    first_support = hub - arm_count
+    for support in range(first_support + 1, first_support + length):
+        previous = support - 1
+        graph[hub] &= ~(1 << support)
+        graph[support] &= ~(1 << hub)
+        graph[previous] |= 1 << support
+        graph[support] |= 1 << previous
+    return hub, graph
+
+
+def check_fixed_diameters():
+    """Measure both part sizes after recoloring and solve the unrestricted 0-1 model."""
+    instances = 0
+    for n in range(2, 6):
+        for edges in base_graphs(n):
+            tau = vertex_cover_number(n, edges)
+            for k in range(n + 1):
+                for diameter in range(5, 11):
+                    hub, graph = fixed_diameter_reduction(n, edges, k, diameter)
+                    levels = distances(graph, hub)
+                    assert -1 not in levels
+                    assert all(abs(levels[v] - levels[w]) == 1
+                               for v, neighbors in enumerate(graph) for w in indices(neighbors))
+                    smaller = sum(level % 2 for level in levels)
+                    assert len(graph) - smaller == smaller + 1
+                    assert connected_diameter(graph) == diameter
+                    val = optimum_by_integer_program(graph)
+                    assert val - smaller == tau - k, (n, edges, k, diameter, val, smaller)
+                    instances += 1
+    print(f"Fixed diameters 5 through 10: {instances} instances; all diameters, part sizes and optimum gaps agree.")
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("check", choices=("all", "diameter", "algorithm", "reduction"), nargs="?", default="all")
+    parser.add_argument("check", choices=("all", "diameter", "algorithm", "reduction", "fixed-diameters"),
+                        nargs="?", default="all")
     mode = parser.parse_args().check
     if mode in ("all", "diameter"):
         check_classification()
@@ -268,3 +314,5 @@ if __name__ == "__main__":
         check_small_part_algorithm()
     if mode in ("all", "reduction"):
         check_reduction()
+    if mode in ("all", "fixed-diameters"):
+        check_fixed_diameters()
